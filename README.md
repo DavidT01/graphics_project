@@ -1,6 +1,6 @@
 > # Space Odyssey
 >
-> Project made for the 'Computer Graphics' course, as part of the studies at the Faculty of Mathematics, University of Belgrade.
+> Project made for the '**Computer Graphics**' course, as part of the studies at the Faculty of Mathematics, University of Belgrade.
 >
 > **Professor**: [dr Vesna Marinković](https://poincare.matf.bg.ac.rs/~vesna.marinkovic/)
 >
@@ -27,7 +27,7 @@
 > ## Dependencies
 >
 > ```
-> $ sudo apt-get install g++ cmake git build-essential libgl1-mesa-dev libsoil-dev libglm-dev libassimp-dev libglew-dev libglfw3-dev libxinerama-dev libxcursor-dev libxi-dev mesa-common-dev mesa-utils libxxf86vm-dev libfreetype6-dev
+> sudo apt-get install g++ cmake git build-essential libgl1-mesa-dev libsoil-dev libglm-dev libassimp-dev libglew-dev libglfw3-dev libxinerama-dev libxcursor-dev libxi-dev mesa-common-dev mesa-utils libxxf86vm-dev libfreetype6-dev
 > ```
 >
 > <hr>
@@ -64,6 +64,7 @@
 > ## Resources
 >
 > [Nebula Skybox](https://opengameart.org/content/space-nebulas-skybox)
+>
 > [Terrain](https://t4.ftcdn.net/jpg/01/95/38/71/360_F_195387192_nTpRC2usGI2MXWeY45PWuxPA7V4h7jgl.jpg)
 >
 > <hr>
