@@ -99,7 +99,7 @@ rule CXX_STATIC_LIBRARY_LINKER__imgui_Debug
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = /snap/clion/265/bin/cmake/linux/x64/bin/cmake --regenerate-during-build -S/home/korisnik/Desktop/graphics_project -B/home/korisnik/Desktop/graphics_project/cmake-build-debug
+  command = /snap/clion/265/bin/cmake/linux/x64/bin/cmake --regenerate-during-build -S/home/korisnik/Desktop/test -B/home/korisnik/Desktop/test/cmake-build-debug
   description = Re-running CMake...
   generator = 1
 

@@ -59,11 +59,11 @@
 			[
 				{
 					"backtrace" : 2,
-					"path" : "/home/korisnik/Desktop/graphics_project/cmake-build-debug/configuration"
+					"path" : "/home/korisnik/Desktop/test/cmake-build-debug/configuration"
 				},
 				{
 					"backtrace" : 3,
-					"path" : "/home/korisnik/Desktop/graphics_project/include"
+					"path" : "/home/korisnik/Desktop/test/include"
 				}
 			],
 			"language" : "CXX",

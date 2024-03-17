@@ -135,9 +135,6 @@ public:
         glDeleteProgram(m_Id);
         m_Id = 0;
     }
-
-
-
 };
 
 

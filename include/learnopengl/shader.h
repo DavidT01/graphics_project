@@ -109,6 +109,12 @@ public:
     { 
         glUseProgram(ID); 
     }
+    // delete the shader
+    // ------------------------------------------------------------------------
+    void deleteProgram() {
+        glDeleteProgram(ID);
+        ID = 0;
+    }
     // utility uniform functions
     // ------------------------------------------------------------------------
     void setBool(const std::string &name, bool value) const

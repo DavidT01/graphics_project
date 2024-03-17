@@ -79,7 +79,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/home/korisnik/Desktop/graphics_project/cmake-build-debug"
+			"value" : "/home/korisnik/Desktop/test/cmake-build-debug"
 		},
 		{
 			"name" : "CMAKE_CACHE_MAJOR_VERSION",
@@ -567,7 +567,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/home/korisnik/Desktop/graphics_project/cmake-build-debug/CMakeFiles/pkgRedirects"
+			"value" : "/home/korisnik/Desktop/test/cmake-build-debug/CMakeFiles/pkgRedirects"
 		},
 		{
 			"name" : "CMAKE_GENERATOR",
@@ -627,7 +627,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "/home/korisnik/Desktop/graphics_project"
+			"value" : "/home/korisnik/Desktop/test"
 		},
 		{
 			"name" : "CMAKE_INSTALL_PREFIX",
@@ -1439,7 +1439,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/home/korisnik/Desktop/graphics_project/cmake-build-debug"
+			"value" : "/home/korisnik/Desktop/test/cmake-build-debug"
 		},
 		{
 			"name" : "project_base_IS_TOP_LEVEL",
@@ -1463,7 +1463,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "/home/korisnik/Desktop/graphics_project"
+			"value" : "/home/korisnik/Desktop/test"
 		}
 	],
 	"kind" : "cache",

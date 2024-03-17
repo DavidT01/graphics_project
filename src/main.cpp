@@ -26,6 +26,8 @@ void processInput(GLFWwindow *window);
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 
+unsigned int loadTexture(std::string pathToTex);
+
 unsigned int loadCubemap(vector<std::string> faces);
 
 // Screen
@@ -56,7 +58,7 @@ struct ProgramState {
     bool ImGuiEnabled = false;
     Camera camera;
     bool CameraMouseMovementUpdateEnabled = true;
-    glm::vec3 backpackPosition = glm::vec3(0.0f);
+    glm::vec3 backpackPosition = glm::vec3(0.0f, 5.0f, 0.0f);
     float backpackScale = 1.0f;
     PointLight pointLight;
     ProgramState()
@@ -151,12 +153,13 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 
     // Build and compile shaders
-    Shader ourShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
+    Shader modelLightShader("resources/shaders/model_lighting_shader.vs", "resources/shaders/model_lighting_shader.fs");
     Shader skyboxShader("resources/shaders/skybox_shader.vs", "resources/shaders/skybox_shader.fs");
+    Shader terrainShader("resources/shaders/terrain_shader.vs", "resources/shaders/terrain_shader.fs");
 
     // Load models
-    Model ourModel("resources/objects/backpack/backpack.obj");
-    ourModel.SetShaderTextureNamePrefix("material.");
+    Model backpack("resources/objects/backpack/backpack.obj");
+    backpack.SetShaderTextureNamePrefix("material.");
 
     PointLight& pointLight = programState->pointLight;
     pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
@@ -168,8 +171,31 @@ int main() {
     pointLight.linear = 0.09f;
     pointLight.quadratic = 0.032f;
 
+    // Plane setup
+    float planeVertices[] = {
+            // positions           // tex coords
+            -500.0f, 0.0f, -500.0f, 0.0f, 30.0f,
+            500.0f, 0.0f, -500.0f, 30.0f, 30.0f,
+            500.0f, 0.0f, 500.0f, 30.0f, 0.0f,
+            -500.0f, 0.0f, 500.0f, 0.0f, 0.0f
+    };
+
+    unsigned int planeVBO, planeVAO;
+    glGenVertexArrays(1, &planeVAO);
+    glGenBuffers(1, &planeVBO);
+    glBindVertexArray(planeVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+
+    unsigned int plainBase = loadTexture("resources/textures/plain_texture/base.jpg");
+
     // Skybox setup
     float skyboxVertices[] = {
+            // positions
             -1.0f, 1.0f, -1.0f,
             -1.0f, -1.0f, -1.0f,
             1.0f, -1.0f, -1.0f,
@@ -249,31 +275,44 @@ int main() {
         glClearColor(programState->clearColor.r, programState->clearColor.g, programState->clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        ourShader.use();
+        modelLightShader.use();
         pointLight.position = glm::vec3(4.0 * cos(currentFrame), 4.0f, 4.0 * sin(currentFrame));
-        ourShader.setVec3("pointLight.position", pointLight.position);
-        ourShader.setVec3("pointLight.ambient", pointLight.ambient);
-        ourShader.setVec3("pointLight.diffuse", pointLight.diffuse);
-        ourShader.setVec3("pointLight.specular", pointLight.specular);
-        ourShader.setFloat("pointLight.constant", pointLight.constant);
-        ourShader.setFloat("pointLight.linear", pointLight.linear);
-        ourShader.setFloat("pointLight.quadratic", pointLight.quadratic);
-        ourShader.setVec3("viewPosition", programState->camera.Position);
-        ourShader.setFloat("material.shininess", 32.0f);
+        modelLightShader.setVec3("pointLight.position", pointLight.position);
+        modelLightShader.setVec3("pointLight.ambient", pointLight.ambient);
+        modelLightShader.setVec3("pointLight.diffuse", pointLight.diffuse);
+        modelLightShader.setVec3("pointLight.specular", pointLight.specular);
+        modelLightShader.setFloat("pointLight.constant", pointLight.constant);
+        modelLightShader.setFloat("pointLight.linear", pointLight.linear);
+        modelLightShader.setFloat("pointLight.quadratic", pointLight.quadratic);
+        modelLightShader.setVec3("viewPosition", programState->camera.Position);
+        modelLightShader.setFloat("material.shininess", 32.0f);
 
         // View/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = programState->camera.GetViewMatrix();
-        ourShader.setMat4("projection", projection);
-        ourShader.setMat4("view", view);
-
-        // render the loaded model
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model,
-                               programState->backpackPosition); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(programState->backpackScale));    // it's a bit too big for our scene, so scale it down
-        ourShader.setMat4("model", model);
-        ourModel.Draw(ourShader);
+        modelLightShader.setMat4("projection", projection);
+        modelLightShader.setMat4("view", view);
+
+        // Backpack render
+        model = glm::translate(model, programState->backpackPosition);
+        model = glm::scale(model, glm::vec3(programState->backpackScale));
+        modelLightShader.setMat4("model", model);
+        backpack.Draw(modelLightShader);
+
+        // Terrain render
+        terrainShader.use();
+        terrainShader.setInt("texture0", 0);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, plainBase);
+        terrainShader.setMat4("projection", projection);
+        terrainShader.setMat4("view", view);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f));
+        terrainShader.setMat4("model", model);
+        glBindVertexArray(planeVAO);
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+        glBindVertexArray(0);
 
         // Skybox render
         glDepthMask(GL_FALSE);
@@ -303,6 +342,11 @@ int main() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
+
+    // De-allocate resources
+    modelLightShader.deleteProgram();
+    terrainShader.deleteProgram();
+    skyboxShader.deleteProgram();
 
     // Terminate
     glfwTerminate();
@@ -402,6 +446,34 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     }
 }
 
+// 2D texture loading
+unsigned int loadTexture(std::string pathToTex)
+{
+    unsigned int textureID;
+    int width, height, nrChannels;
+    unsigned char *data = stbi_load(pathToTex.c_str(), &width, &height, &nrChannels, 0);
+    if (data)
+    {
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        stbi_image_free(data);
+    }
+    else
+    {
+        std::cout << "Failed to load textures!" << std::endl;
+    }
+
+    return textureID;
+}
+
 // Cubemap loading
 unsigned int loadCubemap(vector<std::string> faces)
 {
@@ -412,14 +484,14 @@ unsigned int loadCubemap(vector<std::string> faces)
 
     int width, height, nrChannels;
     unsigned char* data;
-    for (int i = 0; i < faces.size(); i++)
+    for (unsigned int i = 0; i < faces.size(); i++)
     {
         data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
         if (data)
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         else
         {
-            std::cerr << "Failed to load cube map textures!" << std::endl;
+            std::cerr << "Failed to load cubemap textures!" << std::endl;
             stbi_image_free(data);
             return -1;
         }

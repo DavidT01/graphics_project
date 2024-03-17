@@ -783,8 +783,8 @@
 	"kind" : "cmakeFiles",
 	"paths" : 
 	{
-		"build" : "/home/korisnik/Desktop/graphics_project/cmake-build-debug",
-		"source" : "/home/korisnik/Desktop/graphics_project"
+		"build" : "/home/korisnik/Desktop/test/cmake-build-debug",
+		"source" : "/home/korisnik/Desktop/test"
 	},
 	"version" : 
 	{
