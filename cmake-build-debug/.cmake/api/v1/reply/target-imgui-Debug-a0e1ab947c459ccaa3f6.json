@@ -71,11 +71,11 @@
 			[
 				{
 					"backtrace" : 4,
-					"path" : "/home/korisnik/Desktop/test/libs/imgui/include"
+					"path" : "/home/korisnik/Desktop/graphics_project/libs/imgui/include"
 				},
 				{
 					"backtrace" : 2,
-					"path" : "/home/korisnik/Desktop/test/libs/glad/include"
+					"path" : "/home/korisnik/Desktop/graphics_project/libs/glad/include"
 				}
 			],
 			"language" : "CXX",

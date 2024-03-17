@@ -191,7 +191,7 @@ int main() {
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 
-    unsigned int plainBase = loadTexture("resources/textures/plain_texture/base.jpg");
+    unsigned int plainBase = loadTexture("resources/textures/plain/base.jpg");
 
     // Skybox setup
     float skyboxVertices[] = {
@@ -275,6 +275,12 @@ int main() {
         glClearColor(programState->clearColor.r, programState->clearColor.g, programState->clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // View/projection transformations
+        glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = programState->camera.GetViewMatrix();
+        glm::mat4 model = glm::mat4(1.0f);
+
+        // Backpack render
         modelLightShader.use();
         pointLight.position = glm::vec3(4.0 * cos(currentFrame), 4.0f, 4.0 * sin(currentFrame));
         modelLightShader.setVec3("pointLight.position", pointLight.position);
@@ -285,16 +291,9 @@ int main() {
         modelLightShader.setFloat("pointLight.linear", pointLight.linear);
         modelLightShader.setFloat("pointLight.quadratic", pointLight.quadratic);
         modelLightShader.setVec3("viewPosition", programState->camera.Position);
-        modelLightShader.setFloat("material.shininess", 32.0f);
-
-        // View/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = programState->camera.GetViewMatrix();
-        glm::mat4 model = glm::mat4(1.0f);
         modelLightShader.setMat4("projection", projection);
         modelLightShader.setMat4("view", view);
-
-        // Backpack render
+        modelLightShader.setFloat("material.shininess", 32.0f);
         model = glm::translate(model, programState->backpackPosition);
         model = glm::scale(model, glm::vec3(programState->backpackScale));
         modelLightShader.setMat4("model", model);
@@ -438,7 +437,6 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
         programState->ImGuiEnabled = !programState->ImGuiEnabled;
         if (programState->ImGuiEnabled) {
-            programState->CameraMouseMovementUpdateEnabled = false;
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         } else {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -483,7 +481,7 @@ unsigned int loadCubemap(vector<std::string> faces)
     glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 
     int width, height, nrChannels;
-    unsigned char* data;
+    unsigned char* data = nullptr;
     for (unsigned int i = 0; i < faces.size(); i++)
     {
         data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
