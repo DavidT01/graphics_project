@@ -58,8 +58,8 @@ struct ProgramState {
     bool ImGuiEnabled = false;
     Camera camera;
     bool CameraMouseMovementUpdateEnabled = true;
-    glm::vec3 backpackPosition = glm::vec3(0.0f, 5.0f, 0.0f);
-    float backpackScale = 1.0f;
+    glm::vec3 stationPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+    float stationScale = 0.15f;
     PointLight pointLight;
     ProgramState()
             : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
@@ -158,21 +158,21 @@ int main() {
     Shader terrainShader("resources/shaders/terrain_shader.vs", "resources/shaders/terrain_shader.fs");
 
     // Load models
-    Model backpack("resources/objects/backpack/backpack.obj");
-    backpack.SetShaderTextureNamePrefix("material.");
+    Model station("resources/objects/station/Helidrone Station.obj");
+    station.SetShaderTextureNamePrefix("material.");
 
+    // Point light
     PointLight& pointLight = programState->pointLight;
-    pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
-    pointLight.ambient = glm::vec3(0.1, 0.1, 0.1);
-    pointLight.diffuse = glm::vec3(0.6, 0.6, 0.6);
+    pointLight.position = glm::vec3(0.0f, 20.0f, 0.0f);
+    pointLight.ambient = glm::vec3(1.0, 1.0, 1.0);
+    pointLight.diffuse = glm::vec3(0.8, 0.8, 0.8);
     pointLight.specular = glm::vec3(1.0, 1.0, 1.0);
-
     pointLight.constant = 1.0f;
     pointLight.linear = 0.09f;
     pointLight.quadratic = 0.032f;
 
-    // Plane setup
-    float planeVertices[] = {
+    // Plain setup
+    float plainVertices[] = {
             // positions           // tex coords
             -500.0f, 0.0f, -500.0f, 0.0f, 30.0f,
             500.0f, 0.0f, -500.0f, 30.0f, 30.0f,
@@ -180,12 +180,12 @@ int main() {
             -500.0f, 0.0f, 500.0f, 0.0f, 0.0f
     };
 
-    unsigned int planeVBO, planeVAO;
-    glGenVertexArrays(1, &planeVAO);
-    glGenBuffers(1, &planeVBO);
-    glBindVertexArray(planeVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+    unsigned int plainVBO, plainVAO;
+    glGenVertexArrays(1, &plainVAO);
+    glGenBuffers(1, &plainVBO);
+    glBindVertexArray(plainVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, plainVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(plainVertices), plainVertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
@@ -280,9 +280,8 @@ int main() {
         glm::mat4 view = programState->camera.GetViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
 
-        // Backpack render
+        // Station render
         modelLightShader.use();
-        pointLight.position = glm::vec3(4.0 * cos(currentFrame), 4.0f, 4.0 * sin(currentFrame));
         modelLightShader.setVec3("pointLight.position", pointLight.position);
         modelLightShader.setVec3("pointLight.ambient", pointLight.ambient);
         modelLightShader.setVec3("pointLight.diffuse", pointLight.diffuse);
@@ -293,11 +292,11 @@ int main() {
         modelLightShader.setVec3("viewPosition", programState->camera.Position);
         modelLightShader.setMat4("projection", projection);
         modelLightShader.setMat4("view", view);
-        modelLightShader.setFloat("material.shininess", 32.0f);
-        model = glm::translate(model, programState->backpackPosition);
-        model = glm::scale(model, glm::vec3(programState->backpackScale));
+        modelLightShader.setFloat("material.shininess", 16.0f);
+        model = glm::translate(model, programState->stationPosition);
+        model = glm::scale(model, glm::vec3(programState->stationScale));
         modelLightShader.setMat4("model", model);
-        backpack.Draw(modelLightShader);
+        station.Draw(modelLightShader);
 
         // Terrain render
         terrainShader.use();
@@ -309,7 +308,7 @@ int main() {
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f));
         terrainShader.setMat4("model", model);
-        glBindVertexArray(planeVAO);
+        glBindVertexArray(plainVAO);
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
         glBindVertexArray(0);
 
@@ -409,8 +408,6 @@ void DrawImGui(ProgramState *programState) {
         ImGui::Text("Hello text");
         ImGui::SliderFloat("Float slider", &f, 0.0, 1.0);
         ImGui::ColorEdit3("Background color", (float *) &programState->clearColor);
-        ImGui::DragFloat3("Backpack position", (float*)&programState->backpackPosition);
-        ImGui::DragFloat("Backpack scale", &programState->backpackScale, 0.05, 0.1, 4.0);
 
         ImGui::DragFloat("pointLight.constant", &programState->pointLight.constant, 0.05, 0.0, 1.0);
         ImGui::DragFloat("pointLight.linear", &programState->pointLight.linear, 0.05, 0.0, 1.0);
