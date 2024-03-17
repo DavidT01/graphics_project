@@ -16,13 +16,13 @@
 >   - **Models**
 >   - **Lightning**
 >
->- Advanced techniques A:
+> - Advanced techniques A:
 >  - **Cubemaps** (**Skybox**)
 >
->- Advanced techniques B:
+> - Advanced techniques B:
 >  - /
 >
-><hr>
+> <hr>
 >
 > ## Dependencies
 >
@@ -30,7 +30,7 @@
 > $ sudo apt-get install g++ cmake git build-essential libgl1-mesa-dev libsoil-dev libglm-dev libassimp-dev libglew-dev libglfw3-dev libxinerama-dev libxcursor-dev libxi-dev mesa-common-dev mesa-utils libxxf86vm-dev libfreetype6-dev
 > ```
 >
-><hr>
+> <hr>
 >
 > ## Build
 >
@@ -51,13 +51,21 @@
 >
 > `D` - Move Right
 >
->`Mouse` - Look Around
+> `Mouse` - Look Around
 >
->`Scroll` - Zoom In/Out
+> `Scroll` - Zoom In/Out
 >
->`F1` - Toggle Menu
+> `F1` - Toggle Menu
 >
-><hr>
+> `Esc` - Exit
+>
+> <hr>
+>
+> ## Resources
+>
+> [Nebula Skybox](https://opengameart.org/content/space-nebulas-skybox)
+> [Terrain](https://t4.ftcdn.net/jpg/01/95/38/71/360_F_195387192_nTpRC2usGI2MXWeY45PWuxPA7V4h7jgl.jpg)
+>
+> <hr>
 >
 > ## Gallery
->
