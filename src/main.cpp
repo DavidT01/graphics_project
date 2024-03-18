@@ -43,24 +43,13 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-struct PointLight {
-    glm::vec3 position;
-    glm::vec3 ambient;
-    glm::vec3 diffuse;
-    glm::vec3 specular;
-    float constant;
-    float linear;
-    float quadratic;
-};
-
 struct ProgramState {
     glm::vec3 clearColor = glm::vec3(0);
     bool ImGuiEnabled = false;
     Camera camera;
     bool CameraMouseMovementUpdateEnabled = true;
-    glm::vec3 stationPosition = glm::vec3(0.0f, 0.0f, 0.0f);
-    float stationScale = 0.15f;
-    PointLight pointLight;
+    glm::vec3 housePosition = glm::vec3(50.0f, 0.0f, 0.0f);
+    float houseScale = 1.0f;
     ProgramState()
             : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
     void SaveToFile(std::string filename);
@@ -113,7 +102,7 @@ int main() {
 #endif
 
     // Window creation
-    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Space Odyssey", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Scene", NULL, NULL);
     if (window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -153,23 +142,14 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 
     // Build and compile shaders
-    Shader modelLightShader("resources/shaders/model_lighting_shader.vs", "resources/shaders/model_lighting_shader.fs");
+    Shader modelShader("resources/shaders/model_shader.vs", "resources/shaders/model_shader.fs");
     Shader skyboxShader("resources/shaders/skybox_shader.vs", "resources/shaders/skybox_shader.fs");
     Shader terrainShader("resources/shaders/terrain_shader.vs", "resources/shaders/terrain_shader.fs");
 
     // Load models
-    Model station("resources/objects/station/Helidrone Station.obj");
-    station.SetShaderTextureNamePrefix("material.");
-
-    // Point light
-    PointLight& pointLight = programState->pointLight;
-    pointLight.position = glm::vec3(0.0f, 20.0f, 0.0f);
-    pointLight.ambient = glm::vec3(1.0, 1.0, 1.0);
-    pointLight.diffuse = glm::vec3(0.8, 0.8, 0.8);
-    pointLight.specular = glm::vec3(1.0, 1.0, 1.0);
-    pointLight.constant = 1.0f;
-    pointLight.linear = 0.09f;
-    pointLight.quadratic = 0.032f;
+    Model house("resources/objects/house/WoodHouse.obj");
+    house.SetShaderTextureNamePrefix("material.");
+    unsigned int houseTex = loadTexture("resources/objects/house/Diffuse.png");
 
     // Plain setup
     float plainVertices[] = {
@@ -192,6 +172,11 @@ int main() {
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 
     unsigned int plainBase = loadTexture("resources/textures/plain/base.jpg");
+    terrainShader.setInt("texture0", plainBase);
+    unsigned int plainHeight = loadTexture("resources/textures/plain/height.png");
+    terrainShader.setInt("texture1", plainHeight);
+    unsigned int plainRoughness = loadTexture("resources/textures/plain/roughness.jpg");
+    terrainShader.setInt("texture2", plainRoughness);
 
     // Skybox setup
     float skyboxVertices[] = {
@@ -280,36 +265,33 @@ int main() {
         glm::mat4 view = programState->camera.GetViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
 
-        // Station render
-        modelLightShader.use();
-        modelLightShader.setVec3("pointLight.position", pointLight.position);
-        modelLightShader.setVec3("pointLight.ambient", pointLight.ambient);
-        modelLightShader.setVec3("pointLight.diffuse", pointLight.diffuse);
-        modelLightShader.setVec3("pointLight.specular", pointLight.specular);
-        modelLightShader.setFloat("pointLight.constant", pointLight.constant);
-        modelLightShader.setFloat("pointLight.linear", pointLight.linear);
-        modelLightShader.setFloat("pointLight.quadratic", pointLight.quadratic);
-        modelLightShader.setVec3("viewPosition", programState->camera.Position);
-        modelLightShader.setMat4("projection", projection);
-        modelLightShader.setMat4("view", view);
-        modelLightShader.setFloat("material.shininess", 16.0f);
-        model = glm::translate(model, programState->stationPosition);
-        model = glm::scale(model, glm::vec3(programState->stationScale));
-        modelLightShader.setMat4("model", model);
-        station.Draw(modelLightShader);
+        // House render
+        modelShader.use();
+        modelShader.setMat4("projection", projection);
+        modelShader.setMat4("view", view);
+        model = glm::translate(model, programState->housePosition);
+        model = glm::scale(model, glm::vec3(programState->houseScale));
+        modelShader.setMat4("model", model);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, houseTex);
+        house.Draw(modelShader);
 
         // Terrain render
         terrainShader.use();
         terrainShader.setInt("texture0", 0);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, plainBase);
         terrainShader.setMat4("projection", projection);
         terrainShader.setMat4("view", view);
         model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f));
+        model = glm::translate(model, glm::vec3(-50.0f, 0.0f, 0.0f));
         terrainShader.setMat4("model", model);
         glBindVertexArray(plainVAO);
-        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, plainBase);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, plainHeight);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, plainRoughness);
+        glDrawArrays(GL_TRIANGLES, 0, 4);
         glBindVertexArray(0);
 
         // Skybox render
@@ -342,9 +324,13 @@ int main() {
     ImGui::DestroyContext();
 
     // De-allocate resources
-    modelLightShader.deleteProgram();
+    modelShader.deleteProgram();
     terrainShader.deleteProgram();
     skyboxShader.deleteProgram();
+    glDeleteVertexArrays(1, &plainVAO);
+    glDeleteVertexArrays(1, &skyboxVAO);
+    glDeleteBuffers(1, &plainVBO);
+    glDeleteBuffers(1, &skyboxVBO);
 
     // Terminate
     glfwTerminate();
@@ -408,10 +394,6 @@ void DrawImGui(ProgramState *programState) {
         ImGui::Text("Hello text");
         ImGui::SliderFloat("Float slider", &f, 0.0, 1.0);
         ImGui::ColorEdit3("Background color", (float *) &programState->clearColor);
-
-        ImGui::DragFloat("pointLight.constant", &programState->pointLight.constant, 0.05, 0.0, 1.0);
-        ImGui::DragFloat("pointLight.linear", &programState->pointLight.linear, 0.05, 0.0, 1.0);
-        ImGui::DragFloat("pointLight.quadratic", &programState->pointLight.quadratic, 0.05, 0.0, 1.0);
         ImGui::End();
     }
 
