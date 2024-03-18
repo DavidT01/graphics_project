@@ -150,7 +150,7 @@ CODE
  - C++: ImVec2/ImVec4 do not expose math operators by default, because it is expected that you use your own math types.
    See FAQ "How can I use my own math types instead of ImVec2/ImVec4?" for details about setting up imconfig.h for that.
    However, imgui_internal.h can optionally export math operators for ImVec2/ImVec4, which we use in this codebase.
- - C++: pay attention that ImVector<> manipulates plain-old-data and does not honor construction/destruction (avoid using it in your code!).
+ - C++: pay attention that ImVector<> manipulates terrain-old-data and does not honor construction/destruction (avoid using it in your code!).
 
 
  HOW TO UPDATE TO A NEWER VERSION OF DEAR IMGUI
@@ -10364,7 +10364,7 @@ static void SetClipboardTextFn_DefaultImpl(void*, const char* text)
     CFDataRef cf_data = CFDataCreate(kCFAllocatorDefault, (const UInt8*)text, strlen(text));
     if (cf_data)
     {
-        PasteboardPutItemFlavor(main_clipboard, (PasteboardItemID)1, CFSTR("public.utf8-plain-text"), cf_data, 0);
+        PasteboardPutItemFlavor(main_clipboard, (PasteboardItemID)1, CFSTR("public.utf8-terrain-text"), cf_data, 0);
         CFRelease(cf_data);
     }
 }
@@ -10386,7 +10386,7 @@ static const char* GetClipboardTextFn_DefaultImpl(void*)
         for (CFIndex j = 0, nj = CFArrayGetCount(flavor_type_array); j < nj; j++)
         {
             CFDataRef cf_data;
-            if (PasteboardCopyItemFlavorData(main_clipboard, item_id, CFSTR("public.utf8-plain-text"), &cf_data) == noErr)
+            if (PasteboardCopyItemFlavorData(main_clipboard, item_id, CFSTR("public.utf8-terrain-text"), &cf_data) == noErr)
             {
                 ImGuiContext& g = *GImGui;
                 g.ClipboardHandlerData.clear();

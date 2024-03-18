@@ -151,8 +151,8 @@ int main() {
     house.SetShaderTextureNamePrefix("material.");
     unsigned int houseTex = loadTexture("resources/objects/house/Diffuse.png");
 
-    // Plain setup
-    float plainVertices[] = {
+    // Terrain setup
+    float terrainVertices[] = {
             // positions           // tex coords
             -500.0f, 0.0f, -500.0f, 0.0f, 30.0f,
             500.0f, 0.0f, -500.0f, 30.0f, 30.0f,
@@ -160,23 +160,23 @@ int main() {
             -500.0f, 0.0f, 500.0f, 0.0f, 0.0f
     };
 
-    unsigned int plainVBO, plainVAO;
-    glGenVertexArrays(1, &plainVAO);
-    glGenBuffers(1, &plainVBO);
-    glBindVertexArray(plainVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, plainVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(plainVertices), plainVertices, GL_STATIC_DRAW);
+    unsigned int terrainVBO, terrainVAO;
+    glGenVertexArrays(1, &terrainVAO);
+    glGenBuffers(1, &terrainVBO);
+    glBindVertexArray(terrainVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, terrainVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(terrainVertices), terrainVertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 
-    unsigned int plainBase = loadTexture("resources/textures/plain/base.jpg");
-    terrainShader.setInt("texture0", plainBase);
-    unsigned int plainHeight = loadTexture("resources/textures/plain/height.png");
-    terrainShader.setInt("texture1", plainHeight);
-    unsigned int plainRoughness = loadTexture("resources/textures/plain/roughness.jpg");
-    terrainShader.setInt("texture2", plainRoughness);
+    unsigned int terrainBase = loadTexture("resources/textures/terrain/base.jpg");
+    terrainShader.setInt("texture0", terrainBase);
+    unsigned int terrainHeight = loadTexture("resources/textures/terrain/height.png");
+    terrainShader.setInt("texture1", terrainHeight);
+    unsigned int terrainRoughness = loadTexture("resources/textures/terrain/roughness.jpg");
+    terrainShader.setInt("texture2", terrainRoughness);
 
     // Skybox setup
     float skyboxVertices[] = {
@@ -284,13 +284,13 @@ int main() {
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-50.0f, 0.0f, 0.0f));
         terrainShader.setMat4("model", model);
-        glBindVertexArray(plainVAO);
+        glBindVertexArray(terrainVAO);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, plainBase);
+        glBindTexture(GL_TEXTURE_2D, terrainBase);
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, plainHeight);
+        glBindTexture(GL_TEXTURE_2D, terrainHeight);
         glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, plainRoughness);
+        glBindTexture(GL_TEXTURE_2D, terrainRoughness);
         glDrawArrays(GL_TRIANGLES, 0, 4);
         glBindVertexArray(0);
 
@@ -327,9 +327,9 @@ int main() {
     modelShader.deleteProgram();
     terrainShader.deleteProgram();
     skyboxShader.deleteProgram();
-    glDeleteVertexArrays(1, &plainVAO);
+    glDeleteVertexArrays(1, &terrainVAO);
     glDeleteVertexArrays(1, &skyboxVAO);
-    glDeleteBuffers(1, &plainVBO);
+    glDeleteBuffers(1, &terrainVBO);
     glDeleteBuffers(1, &skyboxVBO);
 
     // Terminate
