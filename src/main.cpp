@@ -48,10 +48,12 @@ struct ProgramState {
     bool ImGuiEnabled = false;
     Camera camera;
     bool CameraMouseMovementUpdateEnabled = true;
-    glm::vec3 housePosition = glm::vec3(50.0f, 0.0f, 0.0f);
+    glm::vec3 housePosition = glm::vec3(100.0f, 0.0f, 0.0f);
     float houseScale = 1.0f;
+    float treeScale = 1.0f;
+    float lampScale = 0.3f;
     ProgramState()
-            : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
+            : camera(glm::vec3(0.0f, 5.0f, 0.0f)) {}
     void SaveToFile(std::string filename);
     void LoadFromFile(std::string filename);
 };
@@ -147,9 +149,11 @@ int main() {
     Shader terrainShader("resources/shaders/terrain_shader.vs", "resources/shaders/terrain_shader.fs");
 
     // Load models
-    Model house("resources/objects/house/WoodHouse.obj");
+    Model house("resources/objects/house/highpoly_town_house_01.obj");
     house.SetShaderTextureNamePrefix("material.");
-    unsigned int houseTex = loadTexture("resources/objects/house/Diffuse.png");
+
+    Model lamp("resources/objects/lamp/Lamp Old Street.obj");
+    lamp.SetShaderTextureNamePrefix("material.");
 
     // Terrain setup
     float terrainVertices[] = {
@@ -265,16 +269,24 @@ int main() {
         glm::mat4 view = programState->camera.GetViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
 
-        // House render
+        // Model render
         modelShader.use();
         modelShader.setMat4("projection", projection);
         modelShader.setMat4("view", view);
+
+        // House
         model = glm::translate(model, programState->housePosition);
         model = glm::scale(model, glm::vec3(programState->houseScale));
         modelShader.setMat4("model", model);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, houseTex);
         house.Draw(modelShader);
+
+        // Lamp
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, programState->housePosition + glm::vec3(10.0f, -2.0f, -5.0f));
+        model = glm::rotate(model, glm::radians(60.0f), glm::vec3(0,1,0));
+        model = glm::scale(model, glm::vec3(programState->lampScale));
+        modelShader.setMat4("model", model);
+        lamp.Draw(modelShader);
 
         // Terrain render
         terrainShader.use();
