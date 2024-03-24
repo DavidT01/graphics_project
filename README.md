@@ -1,4 +1,4 @@
-> # Computer Graphics
+> # Project description
 >
 > Project made for the **Computer Graphics** course, as part of the studies at the Faculty of Mathematics, University of Belgrade.
 >
@@ -17,7 +17,7 @@
 >
 >
 > - Advanced techniques:
->  - **Cubemaps** (**Skybox**)
+>   - **Cubemaps** (**Skybox**)
 >
 > <hr>
 >
@@ -61,6 +61,10 @@
 > <hr>
 >
 > ## Resources
+>
+> Initial commit from [course repository](https://github.com/matf-racunarska-grafika/project_base)
+>
+> Majority of code based on [LearnOpenGL](https://github.com/JoeyDeVries/LearnOpenGL)
 >
 > [Nebula Skybox](https://opengameart.org/content/space-nebulas-skybox)
 >
