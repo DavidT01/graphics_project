@@ -22,6 +22,8 @@ struct PointLight {
 };
 
 struct SpotLight {
+    bool enabled;
+
     vec3 position;
     vec3 direction;
     float cutOff;
@@ -63,7 +65,8 @@ void main()
     vec3 viewDir = normalize(viewPosition - FragPos);
     vec3 result = CalcDirLight(dirLight, normal, viewDir);
     result += CalcPointLight(ptLight, normal, FragPos, viewDir);
-    result += CalcSpotLight(spotLight, normal, FragPos, viewDir);
+    if(spotLight.enabled)
+        result += CalcSpotLight(spotLight, normal, FragPos, viewDir);
     FragColor = vec4(result, 1.0);
 }
 

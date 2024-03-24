@@ -1,6 +1,6 @@
-> # Space Odyssey
+> # Computer Graphics
 >
-> Project made for the '**Computer Graphics**' course, as part of the studies at the Faculty of Mathematics, University of Belgrade.
+> Project made for the **Computer Graphics** course, as part of the studies at the Faculty of Mathematics, University of Belgrade.
 >
 > **Professor**: [dr Vesna Marinković](https://poincare.matf.bg.ac.rs/~vesna.marinkovic/)
 >
@@ -11,16 +11,13 @@
 > ## Features
 >
 > - Basic techniques:
->   - **Shaders**
 >   - **Textures**
 >   - **Models**
->   - **Lightning**
+>   - **Lighting**
 >
-> - Advanced techniques A:
+>
+> - Advanced techniques:
 >  - **Cubemaps** (**Skybox**)
->
-> - Advanced techniques B:
->  - /
 >
 > <hr>
 >
@@ -51,6 +48,8 @@
 >
 > `D` - Move Right
 >
+> `F` - Spotlight On/Off
+>
 > `Mouse` - Look Around
 >
 > `Scroll` - Zoom In/Out
@@ -65,7 +64,7 @@
 >
 > [Nebula Skybox](https://opengameart.org/content/space-nebulas-skybox)
 >
-> [Terrain](https://t4.ftcdn.net/jpg/01/95/38/71/360_F_195387192_nTpRC2usGI2MXWeY45PWuxPA7V4h7jgl.jpg)
+> [House model](https://github.com/matf-racunarska-grafika-galerija/OpenGL_matf_project)
 >
 > <hr>
 >

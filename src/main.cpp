@@ -51,6 +51,8 @@ struct PointLight {
 };
 
 struct SpotLight {
+    bool enabled = true;
+
     glm::vec3 position;
     glm::vec3 direction;
     float cutOff;
@@ -89,6 +91,7 @@ struct ProgramState {
     DirLight dirLight;
     PointLight ptLight;
     SpotLight spotLight;
+    glm::vec3 pyramidColor = glm::vec3(1.0f, 0.0f, 0.0f);
     ProgramState()
             : camera(glm::vec3(0.0f, 5.0f, 0.0f)) {}
     void SaveToFile(std::string filename);
@@ -106,7 +109,10 @@ void ProgramState::SaveToFile(std::string filename) {
         << camera.Position.z << '\n'
         << camera.Front.x << '\n'
         << camera.Front.y << '\n'
-        << camera.Front.z << '\n';
+        << camera.Front.z << '\n'
+        << pyramidColor.x << '\n'
+        << pyramidColor.y << '\n'
+        << pyramidColor.z << '\n';
 }
 
 void ProgramState::LoadFromFile(std::string filename) {
@@ -121,7 +127,10 @@ void ProgramState::LoadFromFile(std::string filename) {
            >> camera.Position.z
            >> camera.Front.x
            >> camera.Front.y
-           >> camera.Front.z;
+           >> camera.Front.z
+           >> pyramidColor.x
+           >> pyramidColor.y
+           >> pyramidColor.z;
     }
 }
 
@@ -180,13 +189,13 @@ int main() {
     // Configure global opengl state
     glEnable(GL_DEPTH_TEST);
 
-    // Build and compile shaders
+    // Shaders
     Shader modelShader("resources/shaders/model_shader.vs", "resources/shaders/model_shader.fs");
     Shader lightShader("resources/shaders/light_shader.vs", "resources/shaders/light_shader.fs");
     Shader skyboxShader("resources/shaders/skybox_shader.vs", "resources/shaders/skybox_shader.fs");
     Shader terrainShader("resources/shaders/terrain_shader.vs", "resources/shaders/terrain_shader.fs");
 
-    // Load models
+    // House model
     Model house("resources/objects/house/highpoly_town_house_01.obj");
     house.SetShaderTextureNamePrefix("material.");
 
@@ -340,8 +349,6 @@ int main() {
     // Point light
     PointLight& pointLight = programState->ptLight;
     pointLight.position = programState->pyramidPosition;
-    pointLight.ambient = glm::vec3(1.0, 0.0, 0.0);
-    pointLight.diffuse = glm::vec3(1.0, 0.0, 0.0);
     pointLight.specular = glm::vec3(1.0, 1.0, 1.0);
     pointLight.constant = 1.0f;
     pointLight.linear = 0.09f;
@@ -377,8 +384,9 @@ int main() {
         glm::mat4 view = programState->camera.GetViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
 
-        // Render pyramid
+        // Pyramid render
         lightShader.use();
+        lightShader.setVec3("color", programState->pyramidColor);
         lightShader.setMat4("projection", projection);
         lightShader.setMat4("view", view);
         model = glm::translate(model, programState->pyramidPosition);
@@ -400,14 +408,15 @@ int main() {
 
         // Point light
         modelShader.setVec3("ptLight.position", programState->pyramidPosition);
-        modelShader.setVec3("ptLight.ambient", pointLight.ambient);
-        modelShader.setVec3("ptLight.diffuse", pointLight.diffuse);
+        modelShader.setVec3("ptLight.ambient", programState->pyramidColor);
+        modelShader.setVec3("ptLight.diffuse", programState->pyramidColor);
         modelShader.setVec3("ptLight.specular", pointLight.specular);
         modelShader.setFloat("ptLight.constant", pointLight.constant);
         modelShader.setFloat("ptLight.linear", pointLight.linear);
         modelShader.setFloat("ptLight.quadratic", pointLight.quadratic);
 
         // Spotlight
+        modelShader.setBool("spotLight.enabled", programState->spotLight.enabled);
         modelShader.setVec3("spotLight.position", programState->camera.Position);
         modelShader.setVec3("spotLight.direction", programState->camera.Front);
         modelShader.setVec3("spotLight.ambient", spotLight.ambient);
@@ -469,17 +478,19 @@ int main() {
         glfwPollEvents();
     }
 
+    // De-allocate resources, save data and terminate GLFW
     programState->SaveToFile("resources/program_state.txt");
     delete programState;
+
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
-    // De-allocate resources
     modelShader.deleteProgram();
     lightShader.deleteProgram();
     terrainShader.deleteProgram();
     skyboxShader.deleteProgram();
+
     glDeleteVertexArrays(1, &pyramidVAO);
     glDeleteVertexArrays(1, &pyramidVBO);
     glDeleteVertexArrays(1, &terrainVAO);
@@ -489,12 +500,11 @@ int main() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    // Terminate
     glfwTerminate();
     return 0;
 }
 
-// Process all input
+// Process input
 void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -546,15 +556,6 @@ void DrawImGui(ProgramState *programState) {
     ImGui::NewFrame();
 
     {
-        static float f = 0.0f;
-        ImGui::Begin("Hello window");
-        ImGui::Text("Hello text");
-        ImGui::SliderFloat("Float slider", &f, 0.0, 1.0);
-        ImGui::ColorEdit3("Background color", (float *) &programState->clearColor);
-        ImGui::End();
-    }
-
-    {
         ImGui::Begin("Camera info");
         const Camera& c = programState->camera;
         ImGui::Text("Camera position: (%f, %f, %f)", c.Position.x, c.Position.y, c.Position.z);
@@ -564,12 +565,20 @@ void DrawImGui(ProgramState *programState) {
         ImGui::End();
     }
 
+    {
+        ImGui::Begin("Light settings");
+        ImGui::ColorEdit3("Pyramid color", (float *) &programState->pyramidColor);
+        ImGui::End();
+    }
+
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 // Keyboard
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_F && action == GLFW_PRESS)
+        programState->spotLight.enabled = !programState->spotLight.enabled;
     if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
         programState->ImGuiEnabled = !programState->ImGuiEnabled;
         if (programState->ImGuiEnabled) {
