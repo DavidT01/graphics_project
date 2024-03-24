@@ -30,9 +30,44 @@ unsigned int loadTexture(std::string pathToTex);
 
 unsigned int loadCubemap(vector<std::string> faces);
 
+struct DirLight {
+    glm::vec3 direction;
+
+    glm::vec3 ambient;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+};
+
+struct PointLight {
+    glm::vec3 position;
+
+    float constant;
+    float linear;
+    float quadratic;
+
+    glm::vec3 ambient;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+};
+
+struct SpotLight {
+    glm::vec3 position;
+    glm::vec3 direction;
+    float cutOff;
+    float outerCutOff;
+
+    float constant;
+    float linear;
+    float quadratic;
+
+    glm::vec3 ambient;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+};
+
 // Screen
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1400;
+const unsigned int SCR_HEIGHT = 800;
 
 // Camera
 float lastX = SCR_WIDTH / 2.0f;
@@ -49,9 +84,11 @@ struct ProgramState {
     Camera camera;
     bool CameraMouseMovementUpdateEnabled = true;
     glm::vec3 housePosition = glm::vec3(100.0f, 0.0f, 0.0f);
+    glm::vec3 pyramidPosition = housePosition + glm::vec3(-3.0f, 3.5f, 0.0f);
     float houseScale = 1.0f;
-    float treeScale = 1.0f;
-    float lampScale = 0.3f;
+    DirLight dirLight;
+    PointLight ptLight;
+    SpotLight spotLight;
     ProgramState()
             : camera(glm::vec3(0.0f, 5.0f, 0.0f)) {}
     void SaveToFile(std::string filename);
@@ -145,6 +182,7 @@ int main() {
 
     // Build and compile shaders
     Shader modelShader("resources/shaders/model_shader.vs", "resources/shaders/model_shader.fs");
+    Shader lightShader("resources/shaders/light_shader.vs", "resources/shaders/light_shader.fs");
     Shader skyboxShader("resources/shaders/skybox_shader.vs", "resources/shaders/skybox_shader.fs");
     Shader terrainShader("resources/shaders/terrain_shader.vs", "resources/shaders/terrain_shader.fs");
 
@@ -152,8 +190,50 @@ int main() {
     Model house("resources/objects/house/highpoly_town_house_01.obj");
     house.SetShaderTextureNamePrefix("material.");
 
-    Model lamp("resources/objects/lamp/Lamp Old Street.obj");
-    lamp.SetShaderTextureNamePrefix("material.");
+    // Pyramid setup
+    float pyramidVertices[] = {
+            // positions
+            0.0f, -0.5f, 0.0f,
+            -0.5f, -0.5f, -0.5f,
+            0.5f, -0.5f, -0.5f,
+
+            0.0f, -0.5f, 0.0f,
+            0.5f, -0.5f, -0.5f,
+            0.5f, -0.5f, 0.5f,
+
+            0.0f, -0.5f, 0.0f,
+            0.5f, -0.5f, 0.5f,
+            -0.5f, -0.5f, 0.5f,
+
+            0.0f, -0.5f, 0.0f,
+            -0.5f, -0.5f, 0.5f,
+            -0.5f, -0.5f, -0.5f,
+
+            0.0f, 0.5f, 0.0f,
+            -0.5f, -0.5f, -0.5f,
+            0.5f, -0.5f, -0.5f,
+
+            0.0f, 0.5f, 0.0f,
+            0.5f, -0.5f, -0.5f,
+            0.5f, -0.5f, 0.5f,
+
+            0.0f, 0.5f, 0.0f,
+            0.5f, -0.5f, 0.5f,
+            -0.5f, -0.5f, 0.5f,
+
+            0.0f, 0.5f, 0.0f,
+            -0.5f, -0.5f, 0.5f,
+            -0.5f, -0.5f, -0.5f,
+    };
+
+    unsigned int pyramidVAO, pyramidVBO;
+    glGenVertexArrays(1, &pyramidVAO);
+    glGenBuffers(1, &pyramidVBO);
+    glBindVertexArray(pyramidVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, pyramidVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(pyramidVertices), pyramidVertices, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
 
     // Terrain setup
     float terrainVertices[] = {
@@ -250,6 +330,34 @@ int main() {
     skyboxShader.use();
     skyboxShader.setInt("skybox", 0);
 
+    // Directional light
+    DirLight& dirLight = programState->dirLight;
+    dirLight.direction = glm::vec3(-10.0, -10.0, -3.0);
+    dirLight.ambient = glm::vec3(0.1, 0.1, 0.1);
+    dirLight.diffuse = glm::vec3(0.2, 0.2, 0.2);
+    dirLight.specular = glm::vec3(0.4, 0.4, 0.4);
+
+    // Point light
+    PointLight& pointLight = programState->ptLight;
+    pointLight.position = programState->pyramidPosition;
+    pointLight.ambient = glm::vec3(1.0, 0.0, 0.0);
+    pointLight.diffuse = glm::vec3(1.0, 0.0, 0.0);
+    pointLight.specular = glm::vec3(1.0, 1.0, 1.0);
+    pointLight.constant = 1.0f;
+    pointLight.linear = 0.09f;
+    pointLight.quadratic = 0.032f;
+
+    // Spotlight
+    SpotLight& spotLight = programState->spotLight;
+    spotLight.ambient = glm::vec3(0.3, 0.3, 0.5);
+    spotLight.diffuse = glm::vec3(0.3, 0.3, 0.9);
+    spotLight.specular = glm::vec3(1.0, 1.0, 1.0);
+    spotLight.constant = 1.0f;
+    spotLight.linear = 0.09f;
+    spotLight.quadratic = 0.032f;
+    spotLight.cutOff = glm::cos(glm::radians(10.0f));
+    spotLight.outerCutOff = glm::cos(glm::radians(15.0f));
+
     // Render loop
     while (!glfwWindowShouldClose(window)) {
         // Per-frame time logic
@@ -269,24 +377,56 @@ int main() {
         glm::mat4 view = programState->camera.GetViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
 
-        // Model render
+        // Render pyramid
+        lightShader.use();
+        lightShader.setMat4("projection", projection);
+        lightShader.setMat4("view", view);
+        model = glm::translate(model, programState->pyramidPosition);
+        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(70.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        lightShader.setMat4("model", model);
+        glBindVertexArray(pyramidVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 24);
+        glBindVertexArray(0);
+
+        // House and light render
         modelShader.use();
-        modelShader.setMat4("projection", projection);
-        modelShader.setMat4("view", view);
+
+        // Directional light
+        modelShader.setVec3("dirLight.direction", dirLight.direction);
+        modelShader.setVec3("dirLight.ambient", dirLight.ambient);
+        modelShader.setVec3("dirLight.diffuse", dirLight.diffuse);
+        modelShader.setVec3("dirLight.specular", dirLight.specular);
+        modelShader.setFloat("material.shininess", 16.0f);
+
+        // Point light
+        modelShader.setVec3("ptLight.position", programState->pyramidPosition);
+        modelShader.setVec3("ptLight.ambient", pointLight.ambient);
+        modelShader.setVec3("ptLight.diffuse", pointLight.diffuse);
+        modelShader.setVec3("ptLight.specular", pointLight.specular);
+        modelShader.setFloat("ptLight.constant", pointLight.constant);
+        modelShader.setFloat("ptLight.linear", pointLight.linear);
+        modelShader.setFloat("ptLight.quadratic", pointLight.quadratic);
+
+        // Spotlight
+        modelShader.setVec3("spotLight.position", programState->camera.Position);
+        modelShader.setVec3("spotLight.direction", programState->camera.Front);
+        modelShader.setVec3("spotLight.ambient", spotLight.ambient);
+        modelShader.setVec3("spotLight.diffuse", spotLight.diffuse);
+        modelShader.setVec3("spotLight.specular", spotLight.specular);
+        modelShader.setFloat("spotLight.constant", spotLight.constant);
+        modelShader.setFloat("spotLight.linear", spotLight.linear);
+        modelShader.setFloat("spotLight.quadratic", spotLight.quadratic);
+        modelShader.setFloat("spotLight.cutOff", spotLight.cutOff);
+        modelShader.setFloat("spotLight.outerCutOff", spotLight.outerCutOff);
 
         // House
+        modelShader.setMat4("projection", projection);
+        modelShader.setMat4("view", view);
+        model = glm::mat4(1.0f);
         model = glm::translate(model, programState->housePosition);
         model = glm::scale(model, glm::vec3(programState->houseScale));
         modelShader.setMat4("model", model);
         house.Draw(modelShader);
-
-        // Lamp
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, programState->housePosition + glm::vec3(10.0f, -2.0f, -5.0f));
-        model = glm::rotate(model, glm::radians(60.0f), glm::vec3(0,1,0));
-        model = glm::scale(model, glm::vec3(programState->lampScale));
-        modelShader.setMat4("model", model);
-        lamp.Draw(modelShader);
 
         // Terrain render
         terrainShader.use();
@@ -337,12 +477,17 @@ int main() {
 
     // De-allocate resources
     modelShader.deleteProgram();
+    lightShader.deleteProgram();
     terrainShader.deleteProgram();
     skyboxShader.deleteProgram();
+    glDeleteVertexArrays(1, &pyramidVAO);
+    glDeleteVertexArrays(1, &pyramidVBO);
     glDeleteVertexArrays(1, &terrainVAO);
     glDeleteVertexArrays(1, &skyboxVAO);
     glDeleteBuffers(1, &terrainVBO);
     glDeleteBuffers(1, &skyboxVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 
     // Terminate
     glfwTerminate();
