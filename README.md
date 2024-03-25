@@ -14,6 +14,7 @@
 >   - **Textures**
 >   - **Models**
 >   - **Lighting**
+>   - **Blending**
 >
 >
 > - Advanced techniques:
