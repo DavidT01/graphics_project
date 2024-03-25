@@ -11,9 +11,11 @@
 > ## Features
 >
 > - Basic techniques:
+>   - **Colors**
 >   - **Textures**
 >   - **Models**
 >   - **Lighting**
+>   - **ImGui**
 >   - **Blending**
 >
 >
@@ -53,7 +55,9 @@
 >
 > `Scroll` - Zoom In/Out
 >
-> `F` - Spotlight On/Off
+> `F` - Flashlight On/Off
+> 
+> `L` - Random Light Color On/Off
 >
 > `SPACE` - Lighting Model Switch
 > 
@@ -65,13 +69,10 @@
 >
 > ## Resources
 >
-> Initial commit from [course repository](https://github.com/matf-racunarska-grafika/project_base)
->
-> Majority of code based on [LearnOpenGL](https://github.com/JoeyDeVries/LearnOpenGL)
->
-> [Nebula Skybox](https://opengameart.org/content/space-nebulas-skybox)
->
-> [House model](https://github.com/matf-racunarska-grafika-galerija/OpenGL_matf_project)
+> - Initial commit from [course repository](https://github.com/matf-racunarska-grafika/project_base).
+> - Majority of code based on [LearnOpenGL](https://github.com/JoeyDeVries/LearnOpenGL).
+> - [Nebula Skybox](https://opengameart.org/content/space-nebulas-skybox)
+> - [House model](https://github.com/matf-racunarska-grafika-galerija/OpenGL_matf_project)
 >
 > <hr>
 >

@@ -87,6 +87,7 @@ struct ProgramState {
     PointLight ptLight;
     SpotLight spotLight;
     bool blinn = true;
+    bool randColor = false;
     ProgramState()
             : camera(glm::vec3(0.0f, 5.0f, 0.0f)) {}
     void SaveToFile(std::string filename);
@@ -391,6 +392,13 @@ int main() {
         modelShader.setVec3("dirLight.specular", dirLight.specular);
 
         // Point light
+        if(programState->randColor)
+        {
+            float red = (sin(currentFrame) + 1) / 2;
+            float green = (cos(currentFrame * 1.5f) + 1) / 2;
+            float blue = (sin(currentFrame * 0.5f) + 1) / 2;
+            programState->pyramidColor = glm::vec3(red, green, blue);
+        }
         modelShader.setVec3("ptLight.position", programState->pyramidPosition);
         modelShader.setVec3("ptLight.ambient", programState->pyramidColor * 0.1f);
         modelShader.setVec3("ptLight.diffuse", programState->pyramidColor);
@@ -510,7 +518,6 @@ int main() {
 void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         programState->camera.ProcessKeyboard(FORWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -572,6 +579,7 @@ void DrawImGui(ProgramState *programState) {
     {
         ImGui::Begin("Light settings");
         ImGui::ColorEdit3("Pyramid color", (float *) &programState->pyramidColor);
+        ImGui::Checkbox("Random pyramid color", &programState->randColor);
         ImGui::Text("Lighting model: %s", programState->blinn ? "Blinn Phong" : "Phong");
         ImGui::End();
     }
@@ -582,6 +590,8 @@ void DrawImGui(ProgramState *programState) {
 
 // Keyboard
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_L && action == GLFW_PRESS)
+        programState->randColor = !programState->randColor;
     if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
         programState->blinn = !programState->blinn;
     if (key == GLFW_KEY_F && action == GLFW_PRESS)
