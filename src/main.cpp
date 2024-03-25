@@ -17,17 +17,11 @@
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
-
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
-
 void processInput(GLFWwindow *window);
-
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
-
 unsigned int loadTexture(std::string pathToTex);
-
 unsigned int loadCubemap(vector<std::string> faces);
 
 struct DirLight {
@@ -87,12 +81,12 @@ struct ProgramState {
     bool CameraMouseMovementUpdateEnabled = true;
     glm::vec3 housePosition = glm::vec3(100.0f, 0.0f, 0.0f);
     glm::vec3 pyramidPosition = housePosition + glm::vec3(-3.0f, 3.5f, 0.0f);
+    glm::vec3 pyramidColor = glm::vec3(1.0f, 0.0f, 0.0f);
     float houseScale = 1.0f;
     DirLight dirLight;
     PointLight ptLight;
     SpotLight spotLight;
     bool blinn = true;
-    glm::vec3 pyramidColor = glm::vec3(1.0f, 0.0f, 0.0f);
     ProgramState()
             : camera(glm::vec3(0.0f, 5.0f, 0.0f)) {}
     void SaveToFile(std::string filename);
@@ -343,7 +337,7 @@ int main() {
     // Directional light
     DirLight& dirLight = programState->dirLight;
     dirLight.direction = glm::vec3(-10.0, -10.0, -3.0);
-    dirLight.ambient = glm::vec3(0.05, 0.05, 0.05);
+    dirLight.ambient = glm::vec3(0.15, 0.15, 0.15);
     dirLight.diffuse = glm::vec3(0.1, 0.1, 0.1);
     dirLight.specular = glm::vec3(0.4, 0.4, 0.4);
 
@@ -385,18 +379,6 @@ int main() {
         glm::mat4 view = programState->camera.GetViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
 
-        // Pyramid render
-        lightShader.use();
-        lightShader.setVec3("color", programState->pyramidColor);
-        lightShader.setMat4("projection", projection);
-        lightShader.setMat4("view", view);
-        model = glm::translate(model, programState->pyramidPosition);
-        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(70.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        lightShader.setMat4("model", model);
-        glBindVertexArray(pyramidVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 24);
-        glBindVertexArray(0);
-
         // Model lighting
         modelShader.use();
         modelShader.setFloat("material.shininess", 8.0f);
@@ -410,7 +392,7 @@ int main() {
 
         // Point light
         modelShader.setVec3("ptLight.position", programState->pyramidPosition);
-        modelShader.setVec3("ptLight.ambient", programState->pyramidColor);
+        modelShader.setVec3("ptLight.ambient", programState->pyramidColor * 0.1f);
         modelShader.setVec3("ptLight.diffuse", programState->pyramidColor);
         modelShader.setVec3("ptLight.specular", pointLight.specular);
         modelShader.setFloat("ptLight.constant", pointLight.constant);
@@ -430,7 +412,7 @@ int main() {
         modelShader.setFloat("spotLight.cutOff", spotLight.cutOff);
         modelShader.setFloat("spotLight.outerCutOff", spotLight.outerCutOff);
 
-        // House
+        // House render
         modelShader.setMat4("projection", projection);
         modelShader.setMat4("view", view);
         model = glm::mat4(1.0f);
@@ -470,6 +452,24 @@ int main() {
         glBindVertexArray(0);
         glDepthMask(GL_TRUE);
         glDepthFunc(GL_LESS);
+
+        // Pyramid render
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);
+        glDepthMask(GL_FALSE);
+        lightShader.use();
+        lightShader.setVec3("color", programState->pyramidColor);
+        lightShader.setMat4("projection", projection);
+        lightShader.setMat4("view", view);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, programState->pyramidPosition);
+        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(70.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        lightShader.setMat4("model", model);
+        glBindVertexArray(pyramidVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 24);
+        glBindVertexArray(0);
+        glDisable(GL_BLEND);
+        glDepthMask(GL_TRUE);
 
         // ImGui
         if (programState->ImGuiEnabled)

@@ -46,7 +46,7 @@
 >
 > `A` - Move Left
 >
-> `D` - Move Right>
+> `D` - Move Right
 > 
 > `Mouse` - Look Around
 >
