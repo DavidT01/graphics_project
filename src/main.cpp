@@ -91,6 +91,7 @@ struct ProgramState {
     DirLight dirLight;
     PointLight ptLight;
     SpotLight spotLight;
+    bool blinn = true;
     glm::vec3 pyramidColor = glm::vec3(1.0f, 0.0f, 0.0f);
     ProgramState()
             : camera(glm::vec3(0.0f, 5.0f, 0.0f)) {}
@@ -342,8 +343,8 @@ int main() {
     // Directional light
     DirLight& dirLight = programState->dirLight;
     dirLight.direction = glm::vec3(-10.0, -10.0, -3.0);
-    dirLight.ambient = glm::vec3(0.1, 0.1, 0.1);
-    dirLight.diffuse = glm::vec3(0.2, 0.2, 0.2);
+    dirLight.ambient = glm::vec3(0.05, 0.05, 0.05);
+    dirLight.diffuse = glm::vec3(0.1, 0.1, 0.1);
     dirLight.specular = glm::vec3(0.4, 0.4, 0.4);
 
     // Point light
@@ -356,14 +357,14 @@ int main() {
 
     // Spotlight
     SpotLight& spotLight = programState->spotLight;
-    spotLight.ambient = glm::vec3(0.3, 0.3, 0.5);
-    spotLight.diffuse = glm::vec3(0.3, 0.3, 0.9);
+    spotLight.ambient = glm::vec3(0.3, 0.3, 0.6);
+    spotLight.diffuse = glm::vec3(0.4, 0.4, 0.9);
     spotLight.specular = glm::vec3(1.0, 1.0, 1.0);
     spotLight.constant = 1.0f;
     spotLight.linear = 0.09f;
     spotLight.quadratic = 0.032f;
-    spotLight.cutOff = glm::cos(glm::radians(10.0f));
-    spotLight.outerCutOff = glm::cos(glm::radians(15.0f));
+    spotLight.cutOff = glm::cos(glm::radians(8.0f));
+    spotLight.outerCutOff = glm::cos(glm::radians(12.0f));
 
     // Render loop
     while (!glfwWindowShouldClose(window)) {
@@ -396,15 +397,16 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 24);
         glBindVertexArray(0);
 
-        // House and light render
+        // Model lighting
         modelShader.use();
+        modelShader.setFloat("material.shininess", 8.0f);
+        modelShader.setBool("blinn", programState->blinn);
 
         // Directional light
         modelShader.setVec3("dirLight.direction", dirLight.direction);
         modelShader.setVec3("dirLight.ambient", dirLight.ambient);
         modelShader.setVec3("dirLight.diffuse", dirLight.diffuse);
         modelShader.setVec3("dirLight.specular", dirLight.specular);
-        modelShader.setFloat("material.shininess", 16.0f);
 
         // Point light
         modelShader.setVec3("ptLight.position", programState->pyramidPosition);
@@ -556,11 +558,13 @@ void DrawImGui(ProgramState *programState) {
     ImGui::NewFrame();
 
     {
-        ImGui::Begin("Camera info");
+        ImGui::Begin("General info");
         const Camera& c = programState->camera;
+        int min = (int)glfwGetTime() / 60;
+        int sec = (int)glfwGetTime() - 60 * min;
+        ImGui::Text("Program running time: %d minutes, %d seconds", min, sec);
         ImGui::Text("Camera position: (%f, %f, %f)", c.Position.x, c.Position.y, c.Position.z);
-        ImGui::Text("(Yaw, Pitch): (%f, %f)", c.Yaw, c.Pitch);
-        ImGui::Text("Camera front: (%f, %f, %f)", c.Front.x, c.Front.y, c.Front.z);
+        ImGui::Text("Camera (yaw, pitch): (%f, %f)", c.Yaw, c.Pitch);
         ImGui::Checkbox("Camera mouse update", &programState->CameraMouseMovementUpdateEnabled);
         ImGui::End();
     }
@@ -568,6 +572,7 @@ void DrawImGui(ProgramState *programState) {
     {
         ImGui::Begin("Light settings");
         ImGui::ColorEdit3("Pyramid color", (float *) &programState->pyramidColor);
+        ImGui::Text("Lighting model: %s", programState->blinn ? "Blinn Phong" : "Phong");
         ImGui::End();
     }
 
@@ -577,6 +582,8 @@ void DrawImGui(ProgramState *programState) {
 
 // Keyboard
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
+        programState->blinn = !programState->blinn;
     if (key == GLFW_KEY_F && action == GLFW_PRESS)
         programState->spotLight.enabled = !programState->spotLight.enabled;
     if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {

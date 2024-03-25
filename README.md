@@ -46,14 +46,16 @@
 >
 > `A` - Move Left
 >
-> `D` - Move Right
->
-> `F` - Spotlight On/Off
->
+> `D` - Move Right>
+> 
 > `Mouse` - Look Around
 >
 > `Scroll` - Zoom In/Out
 >
+> `F` - Spotlight On/Off
+>
+> `SPACE` - Lighting Model Switch
+> 
 > `F1` - Toggle Menu
 >
 > `Esc` - Exit
