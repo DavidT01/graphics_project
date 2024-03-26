@@ -590,7 +590,15 @@ void DrawImGui(ProgramState *programState) {
 
     {
         ImGui::Begin("Light settings");
-        ImGui::ColorEdit3("Pyramid color", (float *) &programState->pyramidColor);
+        ImGui::Text("Light position");
+        {
+            ImGui::SliderFloat("X", (float *) (&programState->pyramidPosition.x), 90.0f, 110.0f);
+            ImGui::SliderFloat("Y", (float *) (&programState->pyramidPosition.y), 0.0f, 10.0f);
+            ImGui::SliderFloat("Z", (float *) (&programState->pyramidPosition.z), -10.0f, 10.0f);
+        }
+        ImGui::Spacing();
+        ImGui::Spacing();
+        ImGui::ColorEdit3("Light color", (float *) &programState->pyramidColor);
         ImGui::Checkbox("Random pyramid color", &programState->randColor);
         ImGui::Text("Lighting model: %s", programState->blinn ? "Blinn Phong" : "Phong");
         ImGui::End();
