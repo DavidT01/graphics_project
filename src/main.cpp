@@ -80,7 +80,7 @@ struct ProgramState {
     Camera camera;
     bool CameraMouseMovementUpdateEnabled = true;
     glm::vec3 housePosition = glm::vec3(100.0f, 0.0f, 0.0f);
-    glm::vec3 pyramidPosition = housePosition + glm::vec3(-3.0f, 3.5f, 0.0f);
+    glm::vec3 pyramidPosition = housePosition + glm::vec3(-3.0f, 4.0f, 0.0f);
     glm::vec3 pyramidColor = glm::vec3(1.0f, 0.0f, 0.0f);
     float houseScale = 1.0f;
     DirLight dirLight;
@@ -338,9 +338,9 @@ int main() {
     // Directional light
     DirLight& dirLight = programState->dirLight;
     dirLight.direction = glm::vec3(-10.0, -10.0, -3.0);
-    dirLight.ambient = glm::vec3(0.15, 0.15, 0.15);
+    dirLight.ambient = glm::vec3(0.2, 0.2, 0.2);
     dirLight.diffuse = glm::vec3(0.1, 0.1, 0.1);
-    dirLight.specular = glm::vec3(0.4, 0.4, 0.4);
+    dirLight.specular = glm::vec3(0.7, 0.7, 0.7);
 
     // Point light
     PointLight& pointLight = programState->ptLight;
@@ -352,8 +352,8 @@ int main() {
 
     // Spotlight
     SpotLight& spotLight = programState->spotLight;
-    spotLight.ambient = glm::vec3(0.3, 0.3, 0.6);
-    spotLight.diffuse = glm::vec3(0.4, 0.4, 0.9);
+    spotLight.ambient = glm::vec3(0.4, 0.4, 0.7);
+    spotLight.diffuse = glm::vec3(0.5, 0.5, 0.9);
     spotLight.specular = glm::vec3(1.0, 1.0, 1.0);
     spotLight.constant = 1.0f;
     spotLight.linear = 0.09f;
@@ -469,12 +469,24 @@ int main() {
         lightShader.setVec3("color", programState->pyramidColor);
         lightShader.setMat4("projection", projection);
         lightShader.setMat4("view", view);
+        glBindVertexArray(pyramidVAO);
+        float angle = glfwGetTime() * glm::radians(70.0f);
+
+        // Top pyramid
         model = glm::mat4(1.0f);
         model = glm::translate(model, programState->pyramidPosition);
-        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(70.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::rotate(model, angle, glm::vec3(0.0f, 1.0f, 0.0f));
         lightShader.setMat4("model", model);
-        glBindVertexArray(pyramidVAO);
         glDrawArrays(GL_TRIANGLES, 0, 24);
+
+        // Bottom pyramid
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, programState->pyramidPosition + glm::vec3(0.0f, -1.0f, 0.0f));
+        model = glm::rotate(model, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::rotate(model, -angle, glm::vec3(0.0f, 1.0f, 0.0f));
+        lightShader.setMat4("model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 24);
+
         glBindVertexArray(0);
         glDisable(GL_BLEND);
         glDepthMask(GL_TRUE);
@@ -501,14 +513,14 @@ int main() {
     terrainShader.deleteProgram();
     skyboxShader.deleteProgram();
 
-    glDeleteVertexArrays(1, &pyramidVAO);
-    glDeleteVertexArrays(1, &pyramidVBO);
-    glDeleteVertexArrays(1, &terrainVAO);
-    glDeleteVertexArrays(1, &skyboxVAO);
-    glDeleteBuffers(1, &terrainVBO);
-    glDeleteBuffers(1, &skyboxVBO);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+    glDeleteVertexArrays(1, &pyramidVAO);
+    glDeleteVertexArrays(1, &terrainVAO);
+    glDeleteVertexArrays(1, &skyboxVAO);
+    glDeleteBuffers(1, &pyramidVBO);
+    glDeleteBuffers(1, &terrainVBO);
+    glDeleteBuffers(1, &skyboxVBO);
 
     glfwTerminate();
     return 0;

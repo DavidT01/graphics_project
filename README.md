@@ -13,6 +13,7 @@
 > - Basic techniques:
 >   - **Colors**
 >   - **Textures**
+>   - **Camera**
 >   - **Models**
 >   - **Lighting**
 >   - **ImGui**
